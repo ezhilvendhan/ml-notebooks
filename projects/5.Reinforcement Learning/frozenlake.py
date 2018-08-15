@@ -64,7 +64,6 @@ class FrozenLakeEnv(discrete.DiscreteEnv):
             desc = MAPS[map_name]
         self.desc = desc = np.asarray(desc,dtype='c')
         self.nrow, self.ncol = nrow, ncol = desc.shape
-        self.reward_range = (0, 1)
 
         nA = 4
         nS = nrow * ncol
@@ -76,7 +75,6 @@ class FrozenLakeEnv(discrete.DiscreteEnv):
 
         def to_s(row, col):
             return row*ncol + col
-        
         def inc(row, col, a):
             if a==0: # left
                 col = max(col-1,0)
@@ -112,10 +110,15 @@ class FrozenLakeEnv(discrete.DiscreteEnv):
                             done = bytes(newletter) in b'GH'
                             rew = float(newletter == b'G')
                             li.append((1.0, newstate, rew, done))
+        
+        # obtain one-step dynamics for dynamic programming setting
+        self.P = P
 
         super(FrozenLakeEnv, self).__init__(nS, nA, P, isd)
 
-    def render(self, mode='human'):
+    def _render(self, mode='human', close=False):
+        if close:
+            return
         outfile = StringIO() if mode == 'ansi' else sys.stdout
 
         row, col = self.s // self.ncol, self.s % self.ncol
